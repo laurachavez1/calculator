@@ -11,59 +11,50 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var display: UILabel!
+    @IBOutlet weak var history: UILabel!
     
     var userIsInTheMidddleOfTypingANumber = false
-    
-    @IBOutlet weak var history: UILabel!
+    var brain = CalculatorBrain()
     
     // Clear button will clear display screen and history
     @IBAction func clear() {
+        brain = CalculatorBrain();
         display.text = "0";
-        history.text = "";
-        operandStack.removeAll()
-        userIsInTheMidddleOfTypingANumber = false
+        history.text = " ";
     }
     
-    
     // Takes care of displaying digits and dot onto the screen when pressed
-    @IBAction func appendDigit(_ sender: UIButton) {
+    @IBAction func appendDigit(sender: UIButton) {
         
         let digit = sender.currentTitle!
-        if userIsInTheMidddleOfTypingANumber && (digit != "." || (digit == "." && display.text!.range(of: ".") == nil)){
+        if userIsInTheMidddleOfTypingANumber && (digit != "." || (digit == "." && display.text!.rangeOfString(".") == nil)){
             display.text = display.text! + digit
         }
         else{
             display.text = digit
             userIsInTheMidddleOfTypingANumber = true
+            history.text = brain.showStack()
         }
-        appendHistory(digit);
     }
     
     // Implements all of the operators on the calculator
-    @IBAction func operate(_ sender: UIButton) {
-        let operation = sender.currentTitle!
+    @IBAction func operate(sender: UIButton) {
+        //let operation = sender.currentTitle!
         if userIsInTheMidddleOfTypingANumber{
             enter()
         }
-        switch operation {
-        case "×": performOperation { $0 * $1 } // $0 ~ First off stack $1 ~ Second off stack
-        case "÷": performOperation { $1 / $0 }
-        case "+": performOperation { $0 + $1 }
-        case "−": performOperation { $1 - $0 }
-        case "√": performOperation { sqrt($0) }
-        case "sin": performOperation { sin($0) }
-        case "cos": performOperation { cos($0) }
-        case "π":
-            displayValue = M_PI
-            enter()
-        default:
-            break;
+        if let operation = sender.currentTitle{
+            if let result = brain.performOperation(operation){
+                displayValue = result
+            }
+            else{
+                displayValue = 0;
+            }
         }
-        appendHistory(operation);
     }
     
     // Adds whatever button was pressed onto the history
-    func appendHistory(_ input: String){
+    func appendHistory(input: String){
         if history.text != nil{
             history.text = history.text! + input
         }
@@ -72,37 +63,46 @@ class ViewController: UIViewController {
         }
     }
     
-    func performOperation(operation: (Double, Double) -> Double){
-        if operandStack.count >= 2{
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    private func performOperation(operation: (Double) -> Double){
-        if operandStack.count >= 1{
-            displayValue = operation(operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    // Keeps track of values entered
-    var operandStack = Array<Double>();
-    
     // Used to append values onto the stack
     @IBAction func enter() {
         userIsInTheMidddleOfTypingANumber = false
-        operandStack.append(displayValue)
-        print("operandStack = \(operandStack)\n")
+        if let result = brain.pushOperand(displayValue!){
+            displayValue = result
+        }
+        else{
+            displayValue = 0
+        }
     }
 
-    var displayValue: Double {
+    private var displayValue: Double? {
         get{
-            return NumberFormatter().number(from: display.text!)!.doubleValue
+//            return NumberFormatter().number(from: display.text!)!.doubleValue
+            
+            // If there is text and text can be tranlated to double return the value
+            // otherwise nil
+            if let text = display.text, let value = Double(text){
+                return value
+            }
+            else{
+                return nil
+            }
         }
         set{
-            display.text = "\(newValue)"
+            if let value = newValue{
+                display.text = "\(value)"
+                history.text = brain.showStack()
+            }
+            // if value is nil then clear the display
+            else{
+                display.text = "0"
+                history.text = " ";
+            }
             userIsInTheMidddleOfTypingANumber = false
+            let stack = brain.showStack()
+            if !stack!.isEmpty {
+                history.text = stack! + " ="
+            }
+    
         }
     }
 }
