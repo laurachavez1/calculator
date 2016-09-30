@@ -41,7 +41,8 @@ class CalculatorBrain{
     // Initializing a dictionary, same thing as Dictionary<String, Op>
     private var knownOps = [String:Op]()
     
-    var variableValues: Dictionary<String,Double>
+    // Using for variables with a certain value
+    var variableValues = [String:Double]()
     
     init(){
         func learnOp (op: Op) {
@@ -89,6 +90,7 @@ class CalculatorBrain{
         return(nil, ops)
     }
     
+    // Evaluate the result on the stack, used helper recursive function
     func evaluate() -> Double? {
         let (result,_) = evaluate(opStack)
         return result
@@ -112,8 +114,53 @@ class CalculatorBrain{
         return evaluate()
     }
     
-    // Used for the history label
-    func showStack() -> String? {
-        return opStack.map{ "\($0)" }.joinWithSeparator(" ")
+    // Describes contents of the brain
+    var description: String {
+        get {
+            var (result, ops) = ("", opStack)
+            repeat{
+                var current: String?
+                (current, ops) = description(ops)
+                result = result == "" ? current! : "\(current!), \(result)"
+            } while ops.count > 0
+            return result
+        }
     }
+    
+    // Private helper function to get description to work
+    private func description(ops: [Op]) -> (result: String?, remainingOps: [Op]) {
+        // Took evaluate helper function and modified it
+        if !ops.isEmpty{
+            var remainingOps = ops
+            let op = remainingOps.removeLast()
+            
+            // The things that should change are what is returned (String)
+            switch op{
+            case .Operand(let operand):
+                return (String(format: "%g", operand) , remainingOps)                   // if it's just a value print it out
+            case .ConstantOperation(let symbol, _):
+                return (symbol, remainingOps);                                          // π, should just print π
+            case .UnaryOperation(let symbol, _):
+                let operandEvaluation = description(remainingOps)
+                if let operand = operandEvaluation.result {                             // If it is just unary operation, put the symbol before
+                    return ("\(symbol)(\(operand))", operandEvaluation.remainingOps)    // ex: 10 cos -> cos(10)
+                }
+            case .BinaryOperation(let symbol, _):                                       // If it a binary operation depends on how many operations on stack.
+                let op1Evaluation = description(remainingOps)
+                if var operand1 = op1Evaluation.result {
+                    if remainingOps.count - op1Evaluation.remainingOps.count > 2 {
+                        operand1 = "(\(operand1))"
+                    }
+                    let op2Evaluation = description(op1Evaluation.remainingOps)
+                    if let operand2 = op2Evaluation.result {
+                        return ("\(operand2) \(symbol) \(operand1)", op2Evaluation.remainingOps)
+                    }
+                }
+            case .Variable(let symbol):
+                return (symbol, remainingOps)
+            }
+        }
+        return ("?", ops)       // Should return ? if there is a missing operand
+    }
+    
 }

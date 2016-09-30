@@ -180,15 +180,23 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mZZ-zM-lM4">
                                 <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <state key="normal" title="→M"/>
+                                <connections>
+                                    <action selector="setVariable:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Df4-Dm-rza"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="f5d-yz-bRk">
                                 <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <state key="normal" title="M"/>
+                                <connections>
+                                    <action selector="getVariable:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6FF-86-aLB"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Psu-Ej-AFl">
                                 <fontDescription key="fontDescription" type="system" pointSize="22"/>
                                 <state key="normal" title="C"/>
                                 <connections>
-                                    <action selector="clear" destination="BYZ-38-t0r" eventType="touchUpInside" id="Jru-1o-Nsu"/>
+                                    <action selector="clear" destination="BYZ-38-t0r" eventType="touchUpInside" id="ZMO-D8-09F"/>
                                 </connections>
                             </button>
                         </subviews>

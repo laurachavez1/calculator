@@ -16,13 +16,6 @@ class ViewController: UIViewController {
     var userIsInTheMidddleOfTypingANumber = false
     var brain = CalculatorBrain()
     
-    // Clear button will clear display screen and history
-    @IBAction func clear() {
-        brain = CalculatorBrain();
-        display.text = "0";
-        history.text = " ";
-    }
-    
     // Takes care of displaying digits and dot onto the screen when pressed
     @IBAction func appendDigit(sender: UIButton) {
         
@@ -33,7 +26,7 @@ class ViewController: UIViewController {
         else{
             display.text = digit
             userIsInTheMidddleOfTypingANumber = true
-            history.text = brain.showStack()
+            history.text = brain.description != "?" ? brain.description : ""
         }
     }
     
@@ -48,19 +41,16 @@ class ViewController: UIViewController {
                 displayValue = result
             }
             else{
-                displayValue = 0;
+                displayValue = nil
             }
         }
     }
     
-    // Adds whatever button was pressed onto the history
-    func appendHistory(input: String){
-        if history.text != nil{
-            history.text = history.text! + input
-        }
-        else{
-            history.text = input
-        }
+    // Clear button will clear display screen and history
+    @IBAction func clear() {
+        brain = CalculatorBrain();
+        display.text = "0";
+        history.text = " ";
     }
     
     // Used to append values onto the stack
@@ -70,10 +60,40 @@ class ViewController: UIViewController {
             displayValue = result
         }
         else{
-            displayValue = 0
+            displayValue = nil
         }
     }
-
+    
+    // Used to set variable M (-->M)
+    @IBAction func setVariable(sender: UIButton) {
+        // Gets last character of string, just want 'M'
+        if let variableM = sender.currentTitle!.characters.last {
+            // If there is something is in the display then set the value
+            if displayValue != nil {
+                brain.variableValues["\(variableM)"] = displayValue
+                if let result = brain.evaluate() {
+                    displayValue = result
+                } else {
+                    displayValue = nil
+                }
+            }
+        }
+    }
+    
+    // Used to get the value of 'M'
+    @IBAction func getVariable(sender: UIButton) {
+        // Make sure enter is pressed
+        if userIsInTheMidddleOfTypingANumber {
+            enter()
+        }
+        // Get the 'M' value and evaluate it
+        if let result = brain.pushOperand(sender.currentTitle!) {
+            displayValue = result
+        } else {
+            displayValue = nil
+        }
+    }
+    
     private var displayValue: Double? {
         get{
 //            return NumberFormatter().number(from: display.text!)!.doubleValue
@@ -90,7 +110,6 @@ class ViewController: UIViewController {
         set{
             if let value = newValue{
                 display.text = "\(value)"
-                history.text = brain.showStack()
             }
             // if value is nil then clear the display
             else{
@@ -98,11 +117,7 @@ class ViewController: UIViewController {
                 history.text = " ";
             }
             userIsInTheMidddleOfTypingANumber = false
-            let stack = brain.showStack()
-            if !stack!.isEmpty {
-                history.text = stack! + " ="
-            }
-    
+            history.text = brain.description + " ="
         }
     }
 }
